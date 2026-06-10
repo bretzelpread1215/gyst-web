@@ -95,6 +95,17 @@ document.getElementById("login-btn").addEventListener("click", function() {
   }
 });
 
+document.getElementById("skip-login-btn").addEventListener("click", function() {
+  lmsType = "none";
+  localStorage.setItem("gyst_lms", "none");
+  allAssignmentsRaw = [];
+  document.getElementById("login-error").textContent = "";
+  loadCustomEvents();
+  loadCustomCourses();
+  applyFilters();
+  showApp();
+});
+
 // CUSTOM COURSES
 function loadCustomCourses() {
   try {
@@ -895,7 +906,14 @@ document.addEventListener("keydown", function(e) {
   var savedLms = localStorage.getItem("gyst_lms") || "canvas";
   var savedUrl = localStorage.getItem("gyst_url");
 
-  if (savedLms === "moodle") {
+  if (savedLms === "none") {
+    lmsType = "none";
+    document.getElementById("login-view").style.display = "none";
+    document.getElementById("app-view").style.display = "block";
+    loadCustomEvents();
+    loadCustomCourses();
+    applyFilters();
+  } else if (savedLms === "moodle") {
     var savedMoodleUsername = localStorage.getItem("gyst_moodle_username");
     var savedMoodlePassword = localStorage.getItem("gyst_moodle_password");
     if (savedMoodleUsername && savedMoodlePassword && savedUrl) {
