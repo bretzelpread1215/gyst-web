@@ -593,101 +593,43 @@ document.getElementById("scan-go").addEventListener("click", function() {
   document.getElementById("scan-status").style.display = "block";
   document.getElementById("scan-status").textContent = "reading image... this may take a moment.";
 
-  Tesseract.recognize(scanImageFile, "eng", {
-    logger: function(m) {
-      if (m.status === "recognizing text") {
-        var pct = Math.round(m.progress * 100);
-        document.getElementById("scan-status").textContent = "reading... " + pct + "%";
-      }
-    }
-  }).then(function(result) {
-    var text = result.data.text;
-    var found = parseAssignments(text);
+  var formData = new FormData();
+  formData.append("image", scanImageFile);
 
+  fetch("/api/scan", {
+    method: "POST",
+    body: formData
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
     btn.disabled = false;
     btn.textContent = "scan image";
+    document.getElementById("scan-status").style.display = "none";
 
-    if (found.length === 0) {
+    if (data.error) {
+      document.getElementById("scan-status").style.display = "block";
+      document.getElementById("scan-status").textContent = data.error;
+      return;
+    }
+
+    var found = data.assignments;
+    if (!found || found.length === 0) {
+      document.getElementById("scan-status").style.display = "block";
       document.getElementById("scan-status").textContent = "no assignments found. try a clearer screenshot.";
       return;
     }
 
     document.getElementById("scan-modal").style.display = "none";
     showScanConfirm(found);
-
-  }).catch(function(err) {
+  })
+  .catch(function(err) {
     console.error("Scan error:", err);
     btn.disabled = false;
     btn.textContent = "scan image";
+    document.getElementById("scan-status").style.display = "block";
     document.getElementById("scan-status").textContent = "error reading image. try again.";
   });
 });
-
-function parseAssignments(text) {
-  var lines = text.split("\n").map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; });
-  var found = [];
-
-  var datePatterns = [
-    /(\d{1,2}\/\d{1,2}\/\d{2,4})/,
-    /(\d{1,2}-\d{1,2}-\d{2,4})/,
-    /(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+\d{1,2},?\s*\d{0,4}/i,
-    /(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s*\d{0,4}/i
-  ];
-
-  var keywords = ["homework", "hw", "assignment", "project", "exam", "midterm", "final", "quiz", "lab", "essay", "paper", "report", "due", "submit", "submission"];
-
-  for (var i = 0; i < lines.length; i++) {
-    var line = lines[i];
-    var lower = line.toLowerCase();
-
-    var hasKeyword = false;
-    for (var k = 0; k < keywords.length; k++) {
-      if (lower.indexOf(keywords[k]) !== -1) {
-        hasKeyword = true;
-        break;
-      }
-    }
-
-    var dateMatch = null;
-    for (var d = 0; d < datePatterns.length; d++) {
-      var m = line.match(datePatterns[d]);
-      if (m) {
-        dateMatch = m[0];
-        break;
-      }
-    }
-
-    if (hasKeyword || dateMatch) {
-      var title = line;
-      var dueDate = "";
-
-      if (dateMatch) {
-        var parsed = new Date(dateMatch);
-        if (!isNaN(parsed.getTime())) {
-          if (parsed.getFullYear() < 2024) {
-            parsed.setFullYear(2026);
-          }
-          parsed.setHours(23, 59, 0);
-          dueDate = parsed.toISOString();
-        }
-        title = line.replace(dateMatch, "").trim();
-      }
-
-      if (title.length < 3) title = line;
-      title = title.replace(/^[-:;\s]+/, "").replace(/[-:;\s]+$/, "");
-
-      if (title.length > 2) {
-        found.push({
-          title: title,
-          due: dueDate,
-          course: ""
-        });
-      }
-    }
-  }
-
-  return found;
-}
 
 function showScanConfirm(items) {
   document.getElementById("scan-confirm-modal").style.display = "flex";

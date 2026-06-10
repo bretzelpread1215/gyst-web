@@ -1,7 +1,11 @@
 from flask import Flask, render_template, request, jsonify
 import requests
+import base64
+import json
 
 app = Flask(__name__)
+from dotenv import load_dotenv
+load_dotenv()
 app.secret_key = "gyst-dev-key-change-later"
 
 @app.route("/")
@@ -67,6 +71,51 @@ def get_assignments():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route("/api/scan", methods=["POST"])
+def scan_image():
+    if "image" not in request.files:
+        return jsonify({"error": "no image uploaded"}), 400
+
+    file = request.files["image"]
+    image_data = file.read()
+    b64 = base64.b64encode(image_data).decode("utf-8")
+    media_type = file.content_type or "image/png"
+
+    import anthropic as anthropic_sdk
+    client = anthropic_sdk.Anthropic()  # reads ANTHROPIC_API_KEY from env automatically
+
+    message = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=1024,
+        messages=[{
+            "role": "user",
+            "content": [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": media_type,
+                        "data": b64
+                    }
+                },
+                {
+                    "type": "text",
+                    "text": (
+                        "Extract every assignment from this screenshot. "
+                        "Return ONLY a JSON array, no prose, no markdown, no backticks. "
+                        'Each item must have: {"title": string, "course": string or null, "due": ISO8601 string or null, "points": number or null}. '
+                        "The course is usually a colored header line. The title is bold. Due date and points are in the gray meta line."
+                    )
+                }
+            ]
+        }]
+    )
+
+    import json
+    raw = message.content[0].text.strip()
+    assignments = json.loads(raw)
+    return jsonify({"assignments": assignments})
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
