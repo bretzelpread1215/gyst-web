@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>g.</title>
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="login-view" class="view">
+    <div class="login-card">
+      <div class="login-brand">
+        <h1><span class="g-mark">g</span>.</h1>
+        <p class="tagline">get your shit together.</p>
+      </div>
+
+      <div class="login-form">
+        <label>school</label>
+        <select id="school-select">
+          <option value="">-- pick your school --</option>
+          <optgroup label="UC System">
+            <option value="https://bcourses.berkeley.edu">UC Berkeley</option>
+            <option value="https://canvas.ucdavis.edu">UC Davis</option>
+            <option value="https://bruinlearn.ucla.edu">UCLA</option>
+            <option value="https://canvas.ucsd.edu">UC San Diego</option>
+            <option value="https://canvas.ucsb.edu">UC Santa Barbara</option>
+            <option value="https://canvas.ucsc.edu">UC Santa Cruz</option>
+            <option value="https://uci.instructure.com">UC Irvine</option>
+            <option value="https://canvas.ucr.edu">UC Riverside</option>
+            <option value="https://canvas.ucmerced.edu">UC Merced</option>
+          </optgroup>
+          <optgroup label="US — Private">
+            <option value="https://canvas.stanford.edu">Stanford</option>
+            <option value="https://canvas.mit.edu">MIT</option>
+            <option value="https://courseworks2.columbia.edu">Columbia</option>
+            <option value="https://canvas.upenn.edu">UPenn</option>
+            <option value="https://canvas.harvard.edu">Harvard</option>
+            <option value="https://canvas.northwestern.edu">Northwestern</option>
+            <option value="https://canvas.cmu.edu">Carnegie Mellon</option>
+            <option value="https://canvas.brown.edu">Brown</option>
+            <option value="https://canvas.duke.edu">Duke</option>
+            <option value="https://canvas.yale.edu">Yale</option>
+            <option value="https://canvas.cornell.edu">Cornell</option>
+            <option value="https://canvas.nyu.edu">NYU</option>
+            <option value="https://canvas.usc.edu">USC</option>
+          </optgroup>
+          <optgroup label="US — Public">
+            <option value="https://umich.instructure.com">University of Michigan</option>
+            <option value="https://canvas.asu.edu">Arizona State</option>
+            <option value="https://utexas.instructure.com">UT Austin</option>
+            <option value="https://gatech.instructure.com">Georgia Tech</option>
+            <option value="https://canvas.wisc.edu">UW Madison</option>
+            <option value="https://canvas.uw.edu">UW Seattle</option>
+            <option value="https://ufl.instructure.com">University of Florida</option>
+            <option value="https://canvas.illinois.edu">UIUC</option>
+            <option value="https://canvas.purdue.edu">Purdue</option>
+            <option value="https://canvas.osu.edu">Ohio State</option>
+            <option value="https://canvas.psu.edu">Penn State</option>
+          </optgroup>
+          <optgroup label="Canada">
+            <option value="https://canvas.ubc.ca">UBC</option>
+            <option value="https://canvas.sfu.ca">SFU</option>
+            <option value="https://canvas.uvic.ca">University of Victoria</option>
+            <option value="https://q.utoronto.ca">University of Toronto</option>
+            <option value="https://canvas.mcgill.ca">McGill</option>
+            <option value="https://canvas.ualberta.ca">University of Alberta</option>
+            <option value="https://learn.uwaterloo.ca">University of Waterloo</option>
+            <option value="https://canvas.mcmaster.ca">McMaster</option>
+          </optgroup>
+          <option value="custom">other</option>
+        </select>
+
+        <div id="custom-url-row" style="display:none;">
+          <label>canvas URL</label>
+          <input type="text" id="custom-url" placeholder="https://your-school.instructure.com" />
+        </div>
+
+        <label>API token</label>
+        <input type="password" id="token-input" placeholder="paste your canvas API token" />
+        <p class="hint">canvas &rarr; account &rarr; settings &rarr; new access token</p>
+
+        <button id="login-btn" class="btn-primary">load my assignments</button>
+        <p id="login-error" class="error"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="app-view" class="view" style="display:none;">
+    <nav>
+      <div class="nav-left">
+        <h1><span class="g-mark">g</span>.</h1>
+      </div>
+      <div class="nav-right">
+        <button class="btn-ghost" id="add-btn">+ add</button>
+        <button class="btn-ghost" id="scan-btn">scan</button>
+        <button class="btn-ghost" id="app-settings-btn">settings</button>
+        <button class="btn-ghost" id="logout-btn">sign out</button>
+      </div>
+    </nav>
+
+    <div class="app-body">
+      <div class="sidebar">
+        <div class="sidebar-section">
+          <h3>view</h3>
+          <button class="sidebar-btn active" data-filter="upcoming">upcoming</button>
+          <button class="sidebar-btn" data-filter="overdue">overdue</button>
+          <button class="sidebar-btn" data-filter="all">all</button>
+        </div>
+
+        <div class="sidebar-section">
+          <h3>courses</h3>
+          <div id="course-filters"></div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-card">
+            <span class="stat-num" id="stat-upcoming">0</span>
+            <span class="stat-lbl">upcoming</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num stat-warn" id="stat-overdue">0</span>
+            <span class="stat-lbl">overdue</span>
+          </div>
+        </div>
+      </div>
+
+      <main>
+        <div id="assignments-list">
+          <div class="empty-state">loading your assignments...</div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- SETTINGS PANEL -->
+  <div id="settings-modal" class="modal-overlay" style="display:none;">
+    <div class="settings-panel">
+      <div class="modal-top">
+        <h2>settings</h2>
+        <button class="modal-close" id="settings-close">&times;</button>
+      </div>
+
+      <div class="settings-section">
+        <h3>my courses</h3>
+        <p class="settings-hint">uncheck courses you don't want to see. only checked courses will appear in your feed.</p>
+        <div id="course-toggles"></div>
+      </div>
+
+      <div class="settings-section">
+        <h3>term filter</h3>
+        <p class="settings-hint">only show assignments within these dates. leave blank to show everything.</p>
+        <div class="settings-row">
+          <div>
+            <label>start</label>
+            <input type="date" id="settings-term-start" />
+          </div>
+          <div>
+            <label>end</label>
+            <input type="date" id="settings-term-end" />
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>theme</h3>
+        <div class="theme-grid">
+          <button class="theme-swatch active" data-theme="" style="background: #f4f2f8;">
+            <span class="swatch-dot" style="background: #6b5fa0;"></span>
+            <span class="swatch-label" style="color: #2a2530;">lavender</span>
+          </button>
+          <button class="theme-swatch" data-theme="theme-sage" style="background: #f2f5f0;">
+            <span class="swatch-dot" style="background: #5a7a52;"></span>
+            <span class="swatch-label" style="color: #2a2a22;">sage</span>
+          </button>
+          <button class="theme-swatch" data-theme="theme-sand" style="background: #f5f0e8;">
+            <span class="swatch-dot" style="background: #8b7355;"></span>
+            <span class="swatch-label" style="color: #2a2520;">sand</span>
+          </button>
+          <button class="theme-swatch" data-theme="theme-slate" style="background: #f0f4f8;">
+            <span class="swatch-dot" style="background: #4a6d8c;"></span>
+            <span class="swatch-label" style="color: #222a30;">slate</span>
+          </button>
+          <button class="theme-swatch" data-theme="theme-midnight" style="background: #161620;">
+            <span class="swatch-dot" style="background: #8b7fd4;"></span>
+            <span class="swatch-label" style="color: #8b7fd4;">midnight</span>
+          </button>
+          <button class="theme-swatch" data-theme="theme-sage-dark" style="background: #141a14;">
+            <span class="swatch-dot" style="background: #6a9a60;"></span>
+            <span class="swatch-label" style="color: #6a9a60;">evergreen</span>
+          </button>
+          <button class="theme-swatch" data-theme="theme-sand-dark" style="background: #1a1410;">
+            <span class="swatch-dot" style="background: #c8843a;"></span>
+            <span class="swatch-label" style="color: #c8843a;">bonfire</span>
+          </button>
+          <button class="theme-swatch" data-theme="theme-slate-dark" style="background: #101418;">
+            <span class="swatch-dot" style="background: #5a8ab0;"></span>
+            <span class="swatch-label" style="color: #5a8ab0;">cavern</span>
+          </button>
+        </div>
+      </div>
+
+      <button id="settings-save" class="btn-primary">save settings</button>
+    </div>
+  </div>
+
+  <!-- ADD MODAL -->
+  <div id="add-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-top">
+        <h2>add assignment</h2>
+        <button class="modal-close" id="add-close">&times;</button>
+      </div>
+
+      <label>title</label>
+      <input type="text" id="add-title" placeholder="e.g. homework 4" />
+
+      <label>course</label>
+      <div class="custom-select" id="course-dropdown">
+        <div class="custom-select-trigger" id="course-trigger">-- select course --</div>
+        <div class="custom-select-options" id="course-options"></div>
+      </div>
+      <input type="hidden" id="add-course-value" />
+      <div id="custom-course-row" style="display:none; margin-top: 6px;">
+        <input type="text" id="add-course-custom" placeholder="enter course name" />
+        <label style="margin-top: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+          <input type="checkbox" id="add-course-save" checked style="accent-color: var(--accent); width: 14px; height: 14px;" />
+          <span style="font-size: 0.75rem; color: var(--text-muted);">save as permanent course</span>
+        </label>
+      </div>
+
+      <label>due date</label>
+      <input type="datetime-local" id="add-due" />
+
+      <label>notes <span class="opt">optional</span></label>
+      <input type="text" id="add-notes" placeholder="anything extra" />
+
+      <button id="add-save" class="btn-primary">add</button>
+    </div>
+  </div>
+
+  <!-- SCAN MODAL -->
+  <div id="scan-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-card" style="max-width: 480px;">
+      <div class="modal-top">
+        <h2>scan screenshot</h2>
+        <button class="modal-close" id="scan-close">&times;</button>
+      </div>
+
+      <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.4;">upload a screenshot of a syllabus, assignment page, or schedule. g. will extract any assignments it finds.</p>
+
+      <div id="drop-zone">
+        <p>drop an image here or click to upload</p>
+        <input type="file" id="scan-file" accept="image/*" />
+      </div>
+
+      <div id="scan-preview" style="display:none; margin-top: 10px;">
+        <img id="scan-img" style="width: 100%; border-radius: 8px; border: 1px solid var(--border);" />
+      </div>
+
+      <button id="scan-go" class="btn-primary" style="display:none;">scan image</button>
+      <div id="scan-status" style="display:none; text-align: center; padding: 16px; font-size: 0.82rem; color: var(--text-muted);"></div>
+    </div>
+  </div>
+
+  <!-- SCAN CONFIRM MODAL -->
+  <div id="scan-confirm-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-top">
+        <h2>confirm assignments</h2>
+        <button class="modal-close" id="scan-confirm-close">&times;</button>
+      </div>
+
+      <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.4;">review what was found. uncheck anything you don't want to add. you can edit details after adding.</p>
+
+      <div id="scan-confirm-list"></div>
+
+      <button id="scan-confirm-save" class="btn-primary">add selected</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
