@@ -113,7 +113,18 @@ def scan_image():
     )
 
     import json
-    raw = message.content[0].text.strip()
+    raw = message.content[0].text.strip() if message.content and message.content[0].type == "text" else ""
+    
+    if not raw:
+        # log what we actually got back for debugging
+        print("Haiku response content:", message.content)
+        return jsonify({"error": "no response from scan model"}), 500
+
+    # strip markdown backticks if Haiku wrapped it anyway
+    if raw.startswith("```"):
+        raw = raw.split("\n", 1)[-1]
+        raw = raw.rsplit("```", 1)[0].strip()
+
     assignments = json.loads(raw)
     return jsonify({"assignments": assignments})
 
