@@ -77,7 +77,7 @@ document.getElementById("login-btn").addEventListener("click", function() {
     var token = document.getElementById("token-input").value.trim();
 
     if (!token) {
-      document.getElementById("login-error").textContent = "please fill in both fields.";
+      document.getElementById("login-error").textContent = "please paste your access token.";
       return;
     }
 

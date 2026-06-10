@@ -96,8 +96,8 @@
 
         <!-- CANVAS AUTH -->
         <div id="canvas-auth">
-          <label>API token</label>
-          <input type="password" id="token-input" placeholder="paste your canvas API token" />
+          <label>access token</label>
+          <input type="password" id="token-input" placeholder="paste your access token" />
           <p class="hint">canvas &rarr; account &rarr; settings &rarr; new access token</p>
         </div>
 
@@ -107,28 +107,18 @@
           <input type="text" id="moodle-username" placeholder="your school username" />
           <label>password</label>
           <input type="password" id="moodle-password" placeholder="your school password" />
-          <p class="hint">same username and password you use to log into your school's Moodle site. SSO-only schools can't connect directly &mdash; use <strong>+ add</strong> or <strong>scan</strong> instead.</p>
+          <p class="hint">same login you use for your school's Moodle site. SSO-only schools can't connect directly &mdash; use <strong>+ add</strong> or <strong>scan</strong> instead.</p>
         </div>
 
-        <div class="info-callout" style="margin-top: 12px;">
-          <span class="info-callout-icon">i</span>
-          <p>
-            on a <strong>Moodle</strong> school? choose <strong>other</strong>, enter your school's Moodle URL, and set LMS type to <strong>Moodle</strong>
-            &mdash; then sign in with your usual Moodle username and password. SSO-only schools can't connect directly;
-            use <strong>+ add</strong> or <strong>scan</strong> instead.
-          </p>
-        </div>
+        <p class="hint" style="margin-top: 12px; line-height: 1.5;">
+          don't see your school or don't want to connect? you can still add
+          assignments manually with <strong>+ add</strong> or paste a screenshot into <strong>scan</strong>.
+        </p>
+        <p class="hint" style="margin-top: 12px; line-height: 1.5;">
+          g. supports <strong>Canvas</strong> and <strong>Moodle</strong>. for Blackboard or Brightspace,
+          email your IT department and cc <strong>tay@gyst.day</strong>.
+        </p>
 
-        <p class="hint" style="margin-top: 12px; line-height: 1.5; color: var(--text-faint); font-size: 0.72rem;">
-          don't see your school or don't want to connect? no worries — you can still add assignments
-          manually with <strong>+ add</strong> or paste a screenshot of your syllabus into <strong>scan</strong>.
-        </p>
-        <p class="hint" style="margin-top: 14px; line-height: 1.5; color: var(--text-faint); font-size: 0.72rem;">
-          g. currently supports <strong>Canvas</strong> and <strong>Moodle</strong> schools.
-          if your school uses Blackboard or Brightspace and you'd like g. to work there,
-          email your school's IT department and cc <strong>tay@gyst.day</strong> to get set up.
-        </p>
-        
 
         <button id="login-btn" class="btn-primary">load my assignments</button>
         <button id="skip-login-btn" class="btn-primary" style="background: var(--bg-deep); color: var(--text); margin-top: 8px;">skip — i'll add my own</button>
