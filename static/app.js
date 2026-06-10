@@ -630,6 +630,7 @@ for (var i = 0; i < allSwatchBtns.length; i++) {
   allSwatchBtns[i].addEventListener("click", function() {
     var theme = this.dataset.theme;
     document.body.className = theme;
+    if (weedMode) document.body.classList.add("weed-mode");
     localStorage.setItem("gyst_theme", theme);
 
     var all = document.querySelectorAll(".theme-swatch");
@@ -847,6 +848,39 @@ function showScanConfirm(items) {
     document.getElementById("scan-confirm-modal").style.display = "none";
   };
 }
+
+// WEED MODE EASTER EGG (type 420420 on the main page)
+var weedMode = false;
+var weedBuffer = "";
+
+function toggleWeedMode() {
+  weedMode = !weedMode;
+  document.body.classList.toggle("weed-mode", weedMode);
+
+  var toast = document.createElement("div");
+  toast.className = "weed-toast";
+  toast.textContent = weedMode ? "🌿 weed mode" : "weed mode off";
+  document.body.appendChild(toast);
+  setTimeout(function() { toast.classList.add("show"); }, 10);
+  setTimeout(function() {
+    toast.classList.remove("show");
+    setTimeout(function() { toast.remove(); }, 400);
+  }, 2000);
+}
+
+document.addEventListener("keydown", function(e) {
+  if (document.getElementById("app-view").style.display === "none") return;
+
+  var tag = e.target.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || e.target.isContentEditable) return;
+  if (e.key.length !== 1) return;
+
+  weedBuffer = (weedBuffer + e.key).slice(-6);
+  if (weedBuffer === "420420") {
+    weedBuffer = "";
+    toggleWeedMode();
+  }
+});
 
 // AUTO LOGIN
 (function() {

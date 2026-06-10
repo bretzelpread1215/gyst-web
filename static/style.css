@@ -941,3 +941,33 @@ main {
   border-radius: 20px;
   margin-bottom: 4px;
 }
+
+/* WEED MODE (easter egg: type 420420 on the main page) */
+body.weed-mode {
+  --accent: #4a9a3e;
+  --accent-soft: #e2f2dc;
+}
+
+.weed-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.weed-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
