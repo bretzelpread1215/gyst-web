@@ -398,6 +398,30 @@ document.getElementById("logout-btn").addEventListener("click", function() {
   document.getElementById("login-btn").textContent = "load my assignments";
 });
 
+// SWITCH ACCOUNT (resets Canvas/Moodle connection, keeps custom events)
+document.getElementById("switch-account-btn").addEventListener("click", function() {
+  if (!confirm("switch account? you'll be signed out and need to reconnect Canvas or Moodle. your custom events and added assignments will stay.")) return;
+
+  localStorage.removeItem("gyst_token");
+  localStorage.removeItem("gyst_url");
+
+  canvasToken = "";
+  canvasUrl = "";
+  allAssignments = [];
+  allAssignmentsRaw = [];
+
+  document.getElementById("settings-modal").style.display = "none";
+  document.getElementById("app-view").style.display = "none";
+  document.getElementById("login-view").style.display = "flex";
+  document.getElementById("login-btn").disabled = false;
+  document.getElementById("login-btn").textContent = "load my assignments";
+  document.getElementById("token-input").value = "";
+  document.getElementById("custom-url").value = "";
+  document.getElementById("school-select").value = "";
+  document.getElementById("custom-url-row").style.display = "none";
+  document.getElementById("login-error").textContent = "";
+});
+
 // SETTINGS
 function loadSettings() {
   try {

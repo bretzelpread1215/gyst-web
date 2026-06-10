@@ -244,6 +244,28 @@
         </div>
       </div>
 
+      <div class="settings-section">
+        <h3>moodle setup</h3>
+        <p class="settings-hint">
+          connecting a Moodle school: on the login screen, choose <strong>other</strong>, paste your school's Moodle URL
+          (e.g. <strong>https://moodle.yourschool.edu</strong>), and set LMS type to <strong>Moodle</strong>. then sign in
+          with the same username and password you use for your school's Moodle site.
+        </p>
+        <p class="settings-hint">
+          if your school's Moodle only supports single sign-on (no separate username/password login), g. can't connect
+          directly &mdash; use <strong>+ add</strong> or <strong>scan</strong> to keep track of assignments by hand instead.
+        </p>
+      </div>
+
+      <div class="settings-section">
+        <h3>account</h3>
+        <p class="settings-hint">
+          switch to a different Canvas or Moodle school. you'll be signed out and asked to reconnect &mdash; your custom
+          events and added assignments stay right where they are.
+        </p>
+        <button id="switch-account-btn" class="btn-outline-danger">switch account</button>
+      </div>
+
       <button id="settings-save" class="btn-primary">save settings</button>
     </div>
   </div>

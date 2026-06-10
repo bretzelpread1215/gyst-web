@@ -262,6 +262,22 @@ body {
 .btn-primary:hover { opacity: 0.9; }
 .btn-primary:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
 
+.btn-outline-danger {
+  width: 100%;
+  background: none;
+  border: 1px solid var(--red);
+  color: var(--red);
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  transition: background 0.15s;
+}
+
+.btn-outline-danger:hover { background: var(--red-soft); }
+
 .opt {
   color: var(--text-faint);
   font-size: 0.62rem;

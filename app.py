@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import requests
 import base64
 import json
+from datetime import datetime, timezone
 
 app = Flask(__name__)
 from dotenv import load_dotenv
@@ -72,6 +73,107 @@ def get_assignments():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/moodle-assignments", methods=["POST"])
+def get_moodle_assignments():
+    data = request.json
+    username = data.get("username")
+    password = data.get("password")
+    moodle_url = data.get("moodle_url")
+
+    if not username or not password or not moodle_url:
+        return jsonify({"error": "missing username, password, or url"}), 400
+
+    moodle_url = moodle_url.rstrip("/")
+    ws_url = f"{moodle_url}/webservice/rest/server.php"
+
+    try:
+        token_res = requests.get(
+            f"{moodle_url}/login/token.php",
+            params={"username": username, "password": password, "service": "moodle_mobile_app"},
+            timeout=15
+        )
+        token_data = token_res.json()
+
+        if "token" not in token_data:
+            return jsonify({"error": token_data.get("error", "could not log in. check your username and password.")}), 400
+
+        token = token_data["token"]
+
+        site_info_res = requests.get(ws_url, params={
+            "wstoken": token,
+            "wsfunction": "core_webservice_get_site_info",
+            "moodlewsrestformat": "json"
+        }, timeout=15)
+        site_info = site_info_res.json()
+
+        if "userid" not in site_info:
+            return jsonify({"error": site_info.get("error") or site_info.get("message", "could not load user info.")}), 400
+
+        userid = site_info["userid"]
+
+        courses_res = requests.get(ws_url, params={
+            "wstoken": token,
+            "wsfunction": "core_enrol_get_users_courses",
+            "moodlewsrestformat": "json",
+            "userid": userid
+        }, timeout=15)
+        courses = courses_res.json()
+
+        if isinstance(courses, dict):
+            return jsonify({"error": courses.get("error") or courses.get("message", "could not load courses.")}), 400
+        if not isinstance(courses, list):
+            return jsonify({"error": "could not load courses."}), 400
+
+        course_names = {}
+        for c in courses:
+            if isinstance(c, dict) and "id" in c and c.get("visible", 1):
+                course_names[c["id"]] = c.get("fullname", "unknown course")
+
+        if not course_names:
+            return jsonify({"assignments": []})
+
+        assign_params = {
+            "wstoken": token,
+            "wsfunction": "mod_assign_get_assignments",
+            "moodlewsrestformat": "json"
+        }
+        for i, course_id in enumerate(course_names.keys()):
+            assign_params[f"courseids[{i}]"] = course_id
+
+        assign_res = requests.get(ws_url, params=assign_params, timeout=15)
+        assign_data = assign_res.json()
+
+        if "courses" not in assign_data:
+            return jsonify({"error": assign_data.get("error") or assign_data.get("message", "could not load assignments.")}), 400
+
+        all_assignments = []
+
+        for course in assign_data.get("courses", []):
+            course_name = course_names.get(course.get("id"), course.get("fullname", "unknown course"))
+
+            for a in course.get("assignments", []):
+                due = a.get("duedate")
+                if not due:
+                    continue
+
+                due_iso = datetime.fromtimestamp(due, tz=timezone.utc).isoformat()
+                cmid = a.get("cmid")
+                url = f"{moodle_url}/mod/assign/view.php?id={cmid}" if cmid else None
+
+                all_assignments.append({
+                    "title": a.get("name"),
+                    "due": due_iso,
+                    "course": course_name,
+                    "url": url,
+                    "source": "moodle"
+                })
+
+        all_assignments.sort(key=lambda x: x["due"])
+        return jsonify({"assignments": all_assignments})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/api/scan", methods=["POST"])
 def scan_image():
     if "image" not in request.files:
@@ -112,7 +214,7 @@ def scan_image():
                         "Extract every assignment from this screenshot. "
                         "Return ONLY a JSON array, no prose, no markdown, no backticks. "
                         'Each item must have: {"title": string, "course": string or null, "due": ISO8601 string or null, "points": number or null}. '
-                        "The course is usually a colored header line. The title is bold. Due date and points are in the gray meta line. "
+                        "The course is usually a colored header line. The title is bold. Due date and points are in the gray meta line. Format all course names in title case (e.g. '2026 Spring Biology 1A'). "
                         f"For the course field, match to the closest name from this list if possible: {course_list_str}. "
                         "If nothing matches, use whatever course name appears in the screenshot."
 )
