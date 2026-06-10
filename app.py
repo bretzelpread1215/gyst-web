@@ -85,6 +85,13 @@ def scan_image():
     import anthropic as anthropic_sdk
     client = anthropic_sdk.Anthropic()  # reads ANTHROPIC_API_KEY from env automatically
 
+    known_courses = list(set(
+        [a["course"] for a in allAssignmentsRaw] if False else []
+    ))
+    # get from request if sent
+    req_courses = request.form.get("courses", "")
+    course_list_str = req_courses if req_courses else "none provided"
+
     message = client.messages.create(
         model="claude-haiku-4-5-20251001",
         max_tokens=1024,
@@ -105,8 +112,10 @@ def scan_image():
                         "Extract every assignment from this screenshot. "
                         "Return ONLY a JSON array, no prose, no markdown, no backticks. "
                         'Each item must have: {"title": string, "course": string or null, "due": ISO8601 string or null, "points": number or null}. '
-                        "The course is usually a colored header line. The title is bold. Due date and points are in the gray meta line."
-                    )
+                        "The course is usually a colored header line. The title is bold. Due date and points are in the gray meta line. "
+                        f"For the course field, match to the closest name from this list if possible: {course_list_str}. "
+                        "If nothing matches, use whatever course name appears in the screenshot."
+)
                 }
             ]
         }]

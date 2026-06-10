@@ -596,6 +596,16 @@ document.getElementById("scan-go").addEventListener("click", function() {
   var formData = new FormData();
   formData.append("image", scanImageFile);
 
+  // send known courses for matching
+  var knownCourses = [];
+  var merged = getMerged();
+  for (var i = 0; i < merged.length; i++) {
+    if (knownCourses.indexOf(merged[i].course) === -1) {
+      knownCourses.push(merged[i].course);
+    }
+  }
+  formData.append("courses", knownCourses.join(", "));
+
   fetch("/api/scan", {
     method: "POST",
     body: formData
@@ -631,6 +641,8 @@ document.getElementById("scan-go").addEventListener("click", function() {
   });
 });
 
+// REPLACE the entire showScanConfirm function in app.js with this:
+
 function showScanConfirm(items) {
   document.getElementById("scan-confirm-modal").style.display = "flex";
   var container = document.getElementById("scan-confirm-list");
@@ -638,38 +650,41 @@ function showScanConfirm(items) {
 
   for (var i = 0; i < items.length; i++) {
     var item = items[i];
+
+    // format date for display
+    var dateDisplay = "no date found";
     var dateVal = "";
     if (item.due) {
       var d = new Date(item.due);
-      dateVal = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      if (!isNaN(d.getTime())) {
+        dateDisplay = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+        dateVal = d.getFullYear() + "-" +
+          String(d.getMonth() + 1).padStart(2, "0") + "-" +
+          String(d.getDate()).padStart(2, "0") + "T" +
+          String(d.getHours()).padStart(2, "0") + ":" +
+          String(d.getMinutes()).padStart(2, "0");
+      }
     }
+
+    var courseTag = item.course
+      ? '<span class="scan-item-course-tag">' + item.course + '</span>'
+      : '';
 
     html += '<div class="scan-item">';
     html += '<input type="checkbox" checked data-index="' + i + '" />';
     html += '<div class="scan-item-info">';
+    html += courseTag;
     html += '<div class="scan-item-title">' + item.title + '</div>';
-    html += '<div class="scan-item-detail">' + (dateVal || "no date found") + '</div>';
-    html += '<input type="text" class="scan-item-edit" placeholder="course name" data-index="' + i + '" value="" />';
-    html += '<input type="datetime-local" class="scan-item-edit" data-date-index="' + i + '" value="" />';
+    html += '<div class="scan-item-detail">' + dateDisplay + (item.points ? ' · ' + item.points + ' pts' : '') + '</div>';
+    html += '<div class="scan-item-fields">';
+    html += '<input type="text" class="scan-item-edit course-field" placeholder="course name" data-index="' + i + '" value="' + (item.course || '') + '" />';
+    html += '<input type="datetime-local" class="scan-item-edit date-field" data-date-index="' + i + '" value="' + dateVal + '" />';
+    html += '</div>';
     html += '</div>';
     html += '</div>';
   }
 
   container.innerHTML = html;
-
-  var dateInputs = container.querySelectorAll("input[data-date-index]");
-  for (var i = 0; i < dateInputs.length; i++) {
-    var idx = parseInt(dateInputs[i].dataset.dateIndex);
-    if (items[idx].due) {
-      var dt = new Date(items[idx].due);
-      var local = dt.getFullYear() + "-" +
-        String(dt.getMonth() + 1).padStart(2, "0") + "-" +
-        String(dt.getDate()).padStart(2, "0") + "T" +
-        String(dt.getHours()).padStart(2, "0") + ":" +
-        String(dt.getMinutes()).padStart(2, "0");
-      dateInputs[i].value = local;
-    }
-  }
 
   document.getElementById("scan-confirm-save").onclick = function() {
     var checkboxes = container.querySelectorAll('input[type="checkbox"]');
