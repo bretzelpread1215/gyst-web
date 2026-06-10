@@ -22,82 +22,106 @@
       <div class="login-form">
         <label>school</label>
         <select id="school-select">
-          <option value="">-- pick your school --</option>
+          <option value="" data-lms="">-- pick your school --</option>
+
           <optgroup label="US — Public">
-            <option value="https://umich.instructure.com">University of Michigan</option>
-            <option value="https://canvas.asu.edu">Arizona State</option>
-            <option value="https://utexas.instructure.com">UT Austin</option>
-            <option value="https://gatech.instructure.com">Georgia Tech</option>
-            <option value="https://canvas.wisc.edu">UW Madison</option>
-            <option value="https://canvas.uw.edu">UW Seattle</option>
-            <option value="https://ufl.instructure.com">University of Florida</option>
-            <option value="https://canvas.illinois.edu">UIUC</option>
-            <option value="https://canvas.purdue.edu">Purdue</option>
-            <option value="https://canvas.osu.edu">Ohio State</option>
-            <option value="https://canvas.psu.edu">Penn State</option>
-            <option value="https://canvas.virginia.edu">University of Virginia</option>
-            <option value="https://canvas.msu.edu">Michigan State</option>
-            <option value="https://canvas.ku.edu">University of Kansas</option>
-            <option value="https://canvas.unc.edu">UNC Chapel Hill</option>
+            <option value="https://umich.instructure.com" data-lms="canvas">University of Michigan</option>
+            <option value="https://canvas.asu.edu" data-lms="canvas">Arizona State</option>
+            <option value="https://utexas.instructure.com" data-lms="canvas">UT Austin</option>
+            <option value="https://gatech.instructure.com" data-lms="canvas">Georgia Tech</option>
+            <option value="https://canvas.wisc.edu" data-lms="canvas">UW Madison</option>
+            <option value="https://canvas.uw.edu" data-lms="canvas">UW Seattle</option>
+            <option value="https://ufl.instructure.com" data-lms="canvas">University of Florida</option>
+            <option value="https://canvas.illinois.edu" data-lms="canvas">UIUC</option>
+            <option value="https://canvas.purdue.edu" data-lms="canvas">Purdue</option>
+            <option value="https://canvas.osu.edu" data-lms="canvas">Ohio State</option>
+            <option value="https://canvas.psu.edu" data-lms="canvas">Penn State</option>
           </optgroup>
+
           <optgroup label="UC System">
-            <option value="https://bcourses.berkeley.edu">UC Berkeley</option>
-            <option value="https://canvas.ucdavis.edu">UC Davis</option>
-            <option value="https://bruinlearn.ucla.edu">UCLA</option>
-            <option value="https://canvas.ucsd.edu">UC San Diego</option>
-            <option value="https://canvas.ucsb.edu">UC Santa Barbara</option>
-            <option value="https://canvas.ucsc.edu">UC Santa Cruz</option>
-            <option value="https://uci.instructure.com">UC Irvine</option>
-            <option value="https://canvas.ucr.edu">UC Riverside</option>
-            <option value="https://canvas.ucmerced.edu">UC Merced</option>
+            <option value="https://bcourses.berkeley.edu" data-lms="canvas">UC Berkeley</option>
+            <option value="https://canvas.ucdavis.edu" data-lms="canvas">UC Davis</option>
+            <option value="https://bruinlearn.ucla.edu" data-lms="canvas">UCLA</option>
+            <option value="https://canvas.ucsd.edu" data-lms="canvas">UC San Diego</option>
+            <option value="https://canvas.ucsb.edu" data-lms="canvas">UC Santa Barbara</option>
+            <option value="https://canvas.ucsc.edu" data-lms="canvas">UC Santa Cruz</option>
+            <option value="https://uci.instructure.com" data-lms="canvas">UC Irvine</option>
+            <option value="https://canvas.ucr.edu" data-lms="canvas">UC Riverside</option>
+            <option value="https://canvas.ucmerced.edu" data-lms="canvas">UC Merced</option>
           </optgroup>
+
           <optgroup label="US — Private">
-            <option value="https://canvas.stanford.edu">Stanford</option>
-            <option value="https://canvas.mit.edu">MIT</option>
-            <option value="https://courseworks2.columbia.edu">Columbia</option>
-            <option value="https://canvas.upenn.edu">UPenn</option>
-            <option value="https://canvas.harvard.edu">Harvard</option>
-            <option value="https://canvas.northwestern.edu">Northwestern</option>
-            <option value="https://canvas.cmu.edu">Carnegie Mellon</option>
-            <option value="https://canvas.brown.edu">Brown</option>
-            <option value="https://canvas.duke.edu">Duke</option>
-            <option value="https://canvas.yale.edu">Yale</option>
-            <option value="https://canvas.cornell.edu">Cornell</option>
-            <option value="https://canvas.nyu.edu">NYU</option>
-            <option value="https://canvas.usc.edu">USC</option>
-            <option value = "https://canvas.vanderbilt.edu">Vanderbilt</option>
-            <option value = "https://canvas.princeton.edu">Princeton</option>
+            <option value="https://canvas.stanford.edu" data-lms="canvas">Stanford</option>
+            <option value="https://canvas.mit.edu" data-lms="canvas">MIT</option>
+            <option value="https://courseworks2.columbia.edu" data-lms="canvas">Columbia</option>
+            <option value="https://canvas.upenn.edu" data-lms="canvas">UPenn</option>
+            <option value="https://canvas.harvard.edu" data-lms="canvas">Harvard</option>
+            <option value="https://canvas.northwestern.edu" data-lms="canvas">Northwestern</option>
+            <option value="https://canvas.cmu.edu" data-lms="canvas">Carnegie Mellon</option>
+            <option value="https://canvas.brown.edu" data-lms="canvas">Brown</option>
+            <option value="https://canvas.duke.edu" data-lms="canvas">Duke</option>
+            <option value="https://canvas.yale.edu" data-lms="canvas">Yale</option>
+            <option value="https://canvas.cornell.edu" data-lms="canvas">Cornell</option>
+            <option value="https://canvas.nyu.edu" data-lms="canvas">NYU</option>
+            <option value="https://canvas.usc.edu" data-lms="canvas">USC</option>
           </optgroup>
-          <optgroup label="Canada">
-            <option value="https://canvas.ubc.ca">UBC</option>
-            <option value="https://canvas.sfu.ca">SFU</option>
-            <option value="https://canvas.uvic.ca">University of Victoria</option>
-            <option value="https://q.utoronto.ca">University of Toronto</option>
-            <option value="https://canvas.mcgill.ca">McGill</option>
-            <option value="https://canvas.ualberta.ca">University of Alberta</option>
-            <option value="https://learn.uwaterloo.ca">University of Waterloo</option>
-            <option value="https://canvas.mcmaster.ca">McMaster</option>
-            <option value="https://learn.bcit.ca">BCIT</option>
-            <option value="https://langara.instructure.com">Langara College</option>
-            <option value="https://canvas.douglascollege.ca">Douglas College</option>
-            <option value="https://canvas.capilanou.ca">Capilano University</option>
-            <option value="https://canvas.ecuad.ca">Emily Carr University</option>
-            <option value="https://canvas.kpu.ca">KPU</option>
-            <option value="https://canvas.ryerson.ca">Ryerson University</option>
+
+          <optgroup label="Canada — Canvas">
+            <option value="https://canvas.ubc.ca" data-lms="canvas">UBC</option>
+            <option value="https://canvas.sfu.ca" data-lms="canvas">SFU</option>
+            <option value="https://canvas.uvic.ca" data-lms="canvas">University of Victoria</option>
+            <option value="https://q.utoronto.ca" data-lms="canvas">University of Toronto</option>
+            <option value="https://canvas.mcgill.ca" data-lms="canvas">McGill</option>
+            <option value="https://canvas.ualberta.ca" data-lms="canvas">University of Alberta</option>
+            <option value="https://learn.uwaterloo.ca" data-lms="canvas">University of Waterloo</option>
+            <option value="https://canvas.mcmaster.ca" data-lms="canvas">McMaster</option>
+            <option value="https://courses.moodle.kpu.ca" data-lms="moodle">KPU</option>
+            <option value="https://moodle.capilanou.ca" data-lms="moodle">Capilano University</option>
+            <option value="https://courses.ecuad.ca" data-lms="moodle">Emily Carr University</option>
+            <option value="https://moodle.vcc.ca" data-lms="moodle">Vancouver Community College</option>
           </optgroup>
-          <option value="custom">other</option>
+
+          <option value="custom" data-lms="">other</option>
         </select>
 
         <div id="custom-url-row" style="display:none;">
-          <label>canvas URL</label>
+          <label>LMS URL</label>
           <input type="text" id="custom-url" placeholder="https://your-school.instructure.com" />
+          <label>LMS type</label>
+          <select id="custom-lms-type">
+            <option value="canvas">Canvas</option>
+            <option value="moodle">Moodle</option>
+          </select>
         </div>
 
-        <label>API token</label>
-        <input type="password" id="token-input" placeholder="paste your canvas API token" />
-        <p class="hint">canvas &rarr; account &rarr; settings &rarr; new access token</p>
+        <!-- CANVAS AUTH -->
+        <div id="canvas-auth">
+          <label>API token</label>
+          <input type="password" id="token-input" placeholder="paste your canvas API token" />
+          <p class="hint">canvas &rarr; account &rarr; settings &rarr; new access token</p>
+        </div>
+
+        <!-- MOODLE AUTH -->
+        <div id="moodle-auth" style="display:none;">
+          <label>username</label>
+          <input type="text" id="moodle-username" placeholder="your school username" />
+          <label>password</label>
+          <input type="password" id="moodle-password" placeholder="your school password" />
+          <p class="hint">same login you use for your school's Moodle site</p>
+        </div>
+
+        <p class="hint" style="margin-top: 14px; line-height: 1.5; color: var(--text-faint); font-size: 0.72rem;">
+          g. currently supports <strong>Canvas</strong> and <strong>Moodle</strong> schools.
+          if your school uses Blackboard or Brightspace and you'd like g. to work there,
+          ask your school's IT department to contact <strong>______</strong> to get set up.
+        </p>
+        <p class="hint" style="margin-top: 6px; line-height: 1.5; color: var(--text-faint); font-size: 0.72rem;">
+          don't see your school or don't want to connect? no worries — you can still add assignments
+          manually with <strong>+ add</strong> or paste a screenshot of your syllabus into <strong>scan</strong>.
+        </p>
 
         <button id="login-btn" class="btn-primary">load my assignments</button>
+        <button id="skip-login-btn" class="btn-primary" style="background: var(--bg-deep); color: var(--text); margin-top: 8px;">skip — i'll add my own</button>
         <p id="login-error" class="error"></p>
       </div>
     </div>
@@ -268,7 +292,7 @@
       <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.4;">upload a screenshot of a syllabus, assignment page, or schedule. g. will extract any assignments it finds.</p>
 
       <div id="drop-zone">
-        <p>drop an image here or click to upload</p>
+        <p>drop an image here, click to upload, or paste (ctrl+v)</p>
         <input type="file" id="scan-file" accept="image/*" />
       </div>
 
