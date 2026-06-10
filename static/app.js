@@ -559,6 +559,31 @@ document.getElementById("scan-file").addEventListener("change", function(e) {
   reader.readAsDataURL(file);
 });
 
+// PASTE INTO SCAN
+document.addEventListener("paste", function(e) {
+  if (document.getElementById("scan-modal").style.display !== "flex") return;
+
+  var items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].type.indexOf("image") !== -1) {
+      var file = items[i].getAsFile();
+      if (!file) continue;
+
+      scanImageFile = file;
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        document.getElementById("scan-img").src = ev.target.result;
+        document.getElementById("scan-preview").style.display = "block";
+        document.getElementById("scan-go").style.display = "block";
+      };
+      reader.readAsDataURL(file);
+      break;
+    }
+  }
+});
+
 document.getElementById("scan-go").addEventListener("click", function() {
   if (!scanImageFile) return;
 
