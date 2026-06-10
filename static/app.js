@@ -5,40 +5,94 @@ var activeFilter = "upcoming";
 var activeCourse = null;
 var canvasUrl = "";
 var canvasToken = "";
+var moodleUsername = "";
+var moodlePassword = "";
+var lmsType = "canvas";
 var hiddenCourses = [];
 var customCourseNames = [];
 var termStart = "";
 var termEnd = "";
 
 // LOGIN
+function updateLmsAuthUI(lms) {
+  var isMoodle = lms === "moodle";
+  document.getElementById("canvas-auth").style.display = isMoodle ? "none" : "block";
+  document.getElementById("moodle-auth").style.display = isMoodle ? "block" : "none";
+}
+
 document.getElementById("school-select").addEventListener("change", function(e) {
-  document.getElementById("custom-url-row").style.display = e.target.value === "custom" ? "block" : "none";
+  var isCustom = e.target.value === "custom";
+  document.getElementById("custom-url-row").style.display = isCustom ? "block" : "none";
+
+  var lms = isCustom
+    ? document.getElementById("custom-lms-type").value
+    : e.target.options[e.target.selectedIndex].dataset.lms;
+  updateLmsAuthUI(lms);
+});
+
+document.getElementById("custom-lms-type").addEventListener("change", function(e) {
+  updateLmsAuthUI(e.target.value);
 });
 
 document.getElementById("login-btn").addEventListener("click", function() {
   var select = document.getElementById("school-select");
-  var token = document.getElementById("token-input").value.trim();
+  var url;
+  var lms;
 
   if (select.value === "custom") {
-    canvasUrl = document.getElementById("custom-url").value.trim().replace(/\/$/, "");
+    url = document.getElementById("custom-url").value.trim().replace(/\/$/, "");
+    lms = document.getElementById("custom-lms-type").value;
   } else {
-    canvasUrl = select.value;
+    url = select.value;
+    lms = select.options[select.selectedIndex].dataset.lms;
   }
 
-  canvasToken = token;
-
-  if (!canvasUrl || !canvasToken) {
-    document.getElementById("login-error").textContent = "please fill in both fields.";
+  if (!url) {
+    document.getElementById("login-error").textContent = "please pick a school or enter a URL.";
     return;
   }
 
-  document.getElementById("login-error").textContent = "";
-  document.getElementById("login-btn").disabled = true;
-  document.getElementById("login-btn").textContent = "loading...";
+  if (lms === "moodle") {
+    var username = document.getElementById("moodle-username").value.trim();
+    var password = document.getElementById("moodle-password").value;
 
-  loadCustomEvents();
-  loadCustomCourses();
-  fetchAssignments();
+    if (!username || !password) {
+      document.getElementById("login-error").textContent = "please fill in both fields.";
+      return;
+    }
+
+    lmsType = "moodle";
+    canvasUrl = url;
+    moodleUsername = username;
+    moodlePassword = password;
+
+    document.getElementById("login-error").textContent = "";
+    document.getElementById("login-btn").disabled = true;
+    document.getElementById("login-btn").textContent = "loading...";
+
+    loadCustomEvents();
+    loadCustomCourses();
+    fetchMoodleAssignments();
+  } else {
+    var token = document.getElementById("token-input").value.trim();
+
+    if (!token) {
+      document.getElementById("login-error").textContent = "please fill in both fields.";
+      return;
+    }
+
+    lmsType = "canvas";
+    canvasUrl = url;
+    canvasToken = token;
+
+    document.getElementById("login-error").textContent = "";
+    document.getElementById("login-btn").disabled = true;
+    document.getElementById("login-btn").textContent = "loading...";
+
+    loadCustomEvents();
+    loadCustomCourses();
+    fetchAssignments();
+  }
 });
 
 // CUSTOM COURSES
@@ -131,8 +185,39 @@ function fetchAssignments() {
     }
 
     allAssignmentsRaw = data.assignments;
+    localStorage.setItem("gyst_lms", "canvas");
     localStorage.setItem("gyst_token", canvasToken);
     localStorage.setItem("gyst_url", canvasUrl);
+    applyFilters();
+    showApp();
+  })
+  .catch(function(err) {
+    document.getElementById("login-error").textContent = "error connecting. try again.";
+    document.getElementById("login-btn").disabled = false;
+    document.getElementById("login-btn").textContent = "load my assignments";
+  });
+}
+
+function fetchMoodleAssignments() {
+  fetch("/api/moodle-assignments", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: moodleUsername, password: moodlePassword, moodle_url: canvasUrl })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (data.error) {
+      document.getElementById("login-error").textContent = data.error;
+      document.getElementById("login-btn").disabled = false;
+      document.getElementById("login-btn").textContent = "load my assignments";
+      return;
+    }
+
+    allAssignmentsRaw = data.assignments;
+    localStorage.setItem("gyst_lms", "moodle");
+    localStorage.setItem("gyst_url", canvasUrl);
+    localStorage.setItem("gyst_moodle_username", moodleUsername);
+    localStorage.setItem("gyst_moodle_password", moodlePassword);
     applyFilters();
     showApp();
   })
@@ -387,8 +472,11 @@ document.getElementById("add-save").addEventListener("click", function() {
 
 // LOGOUT
 document.getElementById("logout-btn").addEventListener("click", function() {
+  localStorage.removeItem("gyst_lms");
   localStorage.removeItem("gyst_token");
   localStorage.removeItem("gyst_url");
+  localStorage.removeItem("gyst_moodle_username");
+  localStorage.removeItem("gyst_moodle_password");
   allAssignments = [];
   allAssignmentsRaw = [];
   customEvents = [];
@@ -402,11 +490,17 @@ document.getElementById("logout-btn").addEventListener("click", function() {
 document.getElementById("switch-account-btn").addEventListener("click", function() {
   if (!confirm("switch account? you'll be signed out and need to reconnect Canvas or Moodle. your custom events and added assignments will stay.")) return;
 
+  localStorage.removeItem("gyst_lms");
   localStorage.removeItem("gyst_token");
   localStorage.removeItem("gyst_url");
+  localStorage.removeItem("gyst_moodle_username");
+  localStorage.removeItem("gyst_moodle_password");
 
   canvasToken = "";
   canvasUrl = "";
+  moodleUsername = "";
+  moodlePassword = "";
+  lmsType = "canvas";
   allAssignments = [];
   allAssignmentsRaw = [];
 
@@ -416,9 +510,13 @@ document.getElementById("switch-account-btn").addEventListener("click", function
   document.getElementById("login-btn").disabled = false;
   document.getElementById("login-btn").textContent = "load my assignments";
   document.getElementById("token-input").value = "";
+  document.getElementById("moodle-username").value = "";
+  document.getElementById("moodle-password").value = "";
   document.getElementById("custom-url").value = "";
+  document.getElementById("custom-lms-type").value = "canvas";
   document.getElementById("school-select").value = "";
   document.getElementById("custom-url-row").style.display = "none";
+  updateLmsAuthUI("canvas");
   document.getElementById("login-error").textContent = "";
 });
 
@@ -760,16 +858,36 @@ function showScanConfirm(items) {
     document.body.className = saved;
   }
 
-  var savedToken = localStorage.getItem("gyst_token");
+  var savedLms = localStorage.getItem("gyst_lms") || "canvas";
   var savedUrl = localStorage.getItem("gyst_url");
-  if (savedToken && savedUrl) {
-    canvasToken = savedToken;
-    canvasUrl = savedUrl;
-    document.getElementById("login-view").style.display = "none";
-    document.getElementById("app-view").style.display = "block";
-    document.getElementById("assignments-list").innerHTML = '<div class="empty-state">loading your assignments...</div>';
-    loadCustomEvents();
-    loadCustomCourses();
-    fetchAssignments();
+
+  if (savedLms === "moodle") {
+    var savedMoodleUsername = localStorage.getItem("gyst_moodle_username");
+    var savedMoodlePassword = localStorage.getItem("gyst_moodle_password");
+    if (savedMoodleUsername && savedMoodlePassword && savedUrl) {
+      lmsType = "moodle";
+      canvasUrl = savedUrl;
+      moodleUsername = savedMoodleUsername;
+      moodlePassword = savedMoodlePassword;
+      document.getElementById("login-view").style.display = "none";
+      document.getElementById("app-view").style.display = "block";
+      document.getElementById("assignments-list").innerHTML = '<div class="empty-state">loading your assignments...</div>';
+      loadCustomEvents();
+      loadCustomCourses();
+      fetchMoodleAssignments();
+    }
+  } else {
+    var savedToken = localStorage.getItem("gyst_token");
+    if (savedToken && savedUrl) {
+      lmsType = "canvas";
+      canvasToken = savedToken;
+      canvasUrl = savedUrl;
+      document.getElementById("login-view").style.display = "none";
+      document.getElementById("app-view").style.display = "block";
+      document.getElementById("assignments-list").innerHTML = '<div class="empty-state">loading your assignments...</div>';
+      loadCustomEvents();
+      loadCustomCourses();
+      fetchAssignments();
+    }
   }
 })();
