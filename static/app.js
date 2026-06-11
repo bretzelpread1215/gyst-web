@@ -12,6 +12,7 @@ var hiddenCourses = [];
 var customCourseNames = [];
 var termStart = "";
 var termEnd = "";
+var customColor = "";
 
 // LOGIN
 function updateLmsAuthUI(lms) {
@@ -118,6 +119,32 @@ function saveCustomCourses() {
   localStorage.setItem("gyst_custom_courses", JSON.stringify(customCourseNames));
 }
 
+// COURSE COLORS
+var courseColors = {};
+
+function loadCourseColors() {
+  try {
+    var stored = localStorage.getItem("gyst_course_colors");
+    if (stored) courseColors = JSON.parse(stored) || {};
+  } catch(e) { courseColors = {}; }
+}
+
+function saveCourseColors() {
+  localStorage.setItem("gyst_course_colors", JSON.stringify(courseColors));
+}
+
+function themeAccent() {
+  return getComputedStyle(document.body).getPropertyValue("--accent").trim();
+}
+
+// a course is "custom" (renamable/deletable) if it doesn't come from Canvas/Moodle
+function isCustomCourse(name) {
+  for (var i = 0; i < allAssignmentsRaw.length; i++) {
+    if (allAssignmentsRaw[i].course === name) return false;
+  }
+  return true;
+}
+
 // COURSE DROPDOWN (add modal)
 function buildCourseDropdown() {
   var courses = [];
@@ -158,6 +185,8 @@ function buildCourseDropdown() {
         document.getElementById("course-trigger").textContent = "new course";
         document.getElementById("custom-course-row").style.display = "block";
         document.getElementById("add-course-value").value = "__custom__";
+        document.getElementById("add-course-color").value = themeAccent();
+        addCourseColorTouched = false;
       } else {
         document.getElementById("course-trigger").textContent = val;
         document.getElementById("custom-course-row").style.display = "none";
@@ -257,6 +286,16 @@ for (var i = 0; i < filterBtns.length; i++) {
   });
 }
 
+var statCards = document.querySelectorAll(".stat-card[data-filter]");
+for (var i = 0; i < statCards.length; i++) {
+  statCards[i].addEventListener("click", function() {
+    var target = this.dataset.filter;
+    for (var j = 0; j < filterBtns.length; j++) {
+      if (filterBtns[j].dataset.filter === target) filterBtns[j].click();
+    }
+  });
+}
+
 function buildCourseFilters() {
   var courses = [];
   var merged = getMerged();
@@ -265,12 +304,26 @@ function buildCourseFilters() {
       courses.push(merged[i].course);
     }
   }
+  for (var i = 0; i < customCourseNames.length; i++) {
+    if (courses.indexOf(customCourseNames[i]) === -1) {
+      courses.push(customCourseNames[i]);
+    }
+  }
   courses.sort();
 
+  if (activeCourse && courses.indexOf(activeCourse) === -1) activeCourse = null;
+
   var container = document.getElementById("course-filters");
-  var html = '<button class="course-btn active" data-course="all">all courses</button>';
+  var html = '<button class="course-btn' + (activeCourse === null ? ' active' : '') + '" data-course="all">all courses</button>';
   for (var i = 0; i < courses.length; i++) {
-    html += '<button class="course-btn" data-course="' + courses[i] + '">' + courses[i] + '</button>';
+    var c = courses[i];
+    var dot = courseColors[c]
+      ? '<span class="course-dot" style="background: ' + courseColors[c] + '"></span>'
+      : '<span class="course-dot empty"></span>';
+    html += '<div class="course-row">';
+    html += '<button class="course-btn' + (activeCourse === c ? ' active' : '') + '" data-course="' + c + '">' + dot + '<span class="course-btn-label">' + c + '</span></button>';
+    html += '<button class="course-menu-btn" data-course="' + c + '" title="edit course">&#8943;</button>';
+    html += '</div>';
   }
   container.innerHTML = html;
 
@@ -284,6 +337,14 @@ function buildCourseFilters() {
       this.classList.add("active");
       activeCourse = this.dataset.course === "all" ? null : this.dataset.course;
       renderAssignments();
+    });
+  }
+
+  var menuBtns = container.querySelectorAll(".course-menu-btn");
+  for (var i = 0; i < menuBtns.length; i++) {
+    menuBtns[i].addEventListener("click", function(e) {
+      e.stopPropagation();
+      openCourseEdit(this.dataset.course);
     });
   }
 }
@@ -363,20 +424,24 @@ function renderAssignments() {
       cls = "soon";
       badgeCls = "badge-soon";
       badgeText = "due tomorrow";
+    } else if (diff < 4) {
+      cls = "soon";
+      badgeCls = "badge-soon";
+      badgeText = Math.floor(diff) + "d left";
     } else {
       badgeText = Math.floor(diff) + "d left";
     }
 
     if (a.source === "custom") {
       cls += " custom-card";
-      badgeCls = "badge-custom";
     }
 
     var dateStr = due.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
     var timeStr = due.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
     var deleteBtn = a.source === "custom" ? '<button class="card-delete" data-id="' + a.id + '">&times;</button>' : '';
+    var stripStyle = courseColors[a.course] ? ' style="border-left-color: ' + courseColors[a.course] + '"' : '';
 
-    html += '<div class="assignment-card ' + cls + '"' + (a.url ? ' data-url="' + a.url + '"' : '') + '>';
+    html += '<div class="assignment-card ' + cls + '"' + stripStyle + (a.url ? ' data-url="' + a.url + '"' : '') + '>';
     html += deleteBtn;
     html += '<div class="card-top">';
     html += '<div><div class="card-title">' + a.title + '</div>';
@@ -409,6 +474,115 @@ function renderAssignments() {
     });
   }
 }
+
+// COURSE EDIT MODAL
+var editingCourse = null;
+var courseEditColorTouched = false;
+var courseEditColorCleared = false;
+var addCourseColorTouched = false;
+
+document.getElementById("add-course-color").addEventListener("input", function() {
+  addCourseColorTouched = true;
+});
+
+function openCourseEdit(name) {
+  editingCourse = name;
+  courseEditColorTouched = false;
+  courseEditColorCleared = false;
+
+  var custom = isCustomCourse(name);
+  var nameInput = document.getElementById("course-edit-name");
+  nameInput.value = name;
+  nameInput.disabled = !custom;
+  document.getElementById("course-edit-name-hint").style.display = custom ? "none" : "block";
+  document.getElementById("course-edit-color").value = courseColors[name] || themeAccent();
+  document.getElementById("course-edit-delete").style.display = custom ? "block" : "none";
+  document.getElementById("course-edit-modal").style.display = "flex";
+}
+
+document.getElementById("course-edit-close").addEventListener("click", function() {
+  document.getElementById("course-edit-modal").style.display = "none";
+  editingCourse = null;
+});
+
+document.getElementById("course-edit-modal").addEventListener("click", function(e) {
+  if (e.target === this) {
+    this.style.display = "none";
+    editingCourse = null;
+  }
+});
+
+document.getElementById("course-edit-color").addEventListener("input", function() {
+  courseEditColorTouched = true;
+  courseEditColorCleared = false;
+});
+
+document.getElementById("course-edit-color-reset").addEventListener("click", function() {
+  courseEditColorTouched = false;
+  courseEditColorCleared = true;
+  document.getElementById("course-edit-color").value = themeAccent();
+});
+
+document.getElementById("course-edit-save").addEventListener("click", function() {
+  if (!editingCourse) return;
+  var name = editingCourse;
+
+  if (courseEditColorCleared) {
+    delete courseColors[name];
+  } else if (courseEditColorTouched) {
+    courseColors[name] = document.getElementById("course-edit-color").value;
+  }
+
+  var newName = document.getElementById("course-edit-name").value.trim();
+  if (newName && newName !== name && isCustomCourse(name)) {
+    var idx = customCourseNames.indexOf(name);
+    if (idx !== -1) customCourseNames.splice(idx, 1);
+    if (customCourseNames.indexOf(newName) === -1) customCourseNames.push(newName);
+    saveCustomCourses();
+
+    for (var i = 0; i < customEvents.length; i++) {
+      if (customEvents[i].course === name) customEvents[i].course = newName;
+    }
+    saveCustomEvents();
+
+    if (courseColors[name]) {
+      courseColors[newName] = courseColors[name];
+      delete courseColors[name];
+    }
+    if (activeCourse === name) activeCourse = newName;
+  }
+
+  saveCourseColors();
+  buildCourseFilters();
+  updateStats();
+  renderAssignments();
+  document.getElementById("course-edit-modal").style.display = "none";
+  editingCourse = null;
+});
+
+document.getElementById("course-edit-delete").addEventListener("click", function() {
+  if (!editingCourse) return;
+  if (!confirm('delete "' + editingCourse + '"? its added assignments will move to uncategorized.')) return;
+
+  var idx = customCourseNames.indexOf(editingCourse);
+  if (idx !== -1) customCourseNames.splice(idx, 1);
+  saveCustomCourses();
+
+  for (var i = 0; i < customEvents.length; i++) {
+    if (customEvents[i].course === editingCourse) customEvents[i].course = "uncategorized";
+  }
+  saveCustomEvents();
+
+  delete courseColors[editingCourse];
+  saveCourseColors();
+  if (activeCourse === editingCourse) activeCourse = null;
+
+  buildCourseFilters();
+  updateStats();
+  renderAssignments();
+  document.getElementById("course-edit-modal").style.display = "none";
+  editingCourse = null;
+});
 
 // CUSTOM EVENTS
 function loadCustomEvents() {
@@ -449,6 +623,10 @@ document.getElementById("add-save").addEventListener("click", function() {
     if (course && savePermanent && customCourseNames.indexOf(course) === -1) {
       customCourseNames.push(course);
       saveCustomCourses();
+    }
+    if (course && addCourseColorTouched) {
+      courseColors[course] = document.getElementById("add-course-color").value;
+      saveCourseColors();
     }
   } else {
     course = courseSelect;
@@ -538,7 +716,9 @@ function loadSettings() {
     if (h) hiddenCourses = JSON.parse(h);
     termStart = localStorage.getItem("gyst_term_start") || "";
     termEnd = localStorage.getItem("gyst_term_end") || "";
+    customColor = localStorage.getItem("gyst_custom_color") || "";
   } catch(e) {}
+  loadCourseColors();
 }
 
 function saveSettingsData() {
@@ -569,11 +749,37 @@ function applyFilters() {
   renderAssignments();
 }
 
+function applyCustomColor() {
+  if (customColor) {
+    document.body.style.setProperty("--custom", customColor);
+  } else {
+    document.body.style.removeProperty("--custom");
+  }
+}
+
+function themeGreen() {
+  return getComputedStyle(document.body).getPropertyValue("--green").trim();
+}
+
+document.getElementById("settings-custom-color").addEventListener("input", function() {
+  customColor = this.value;
+  localStorage.setItem("gyst_custom_color", customColor);
+  applyCustomColor();
+});
+
+document.getElementById("custom-color-reset").addEventListener("click", function() {
+  customColor = "";
+  localStorage.removeItem("gyst_custom_color");
+  applyCustomColor();
+  document.getElementById("settings-custom-color").value = themeGreen();
+});
+
 document.getElementById("app-settings-btn").addEventListener("click", function() {
   document.getElementById("settings-modal").style.display = "flex";
   buildCourseToggles();
   document.getElementById("settings-term-start").value = termStart;
   document.getElementById("settings-term-end").value = termEnd;
+  document.getElementById("settings-custom-color").value = customColor || themeGreen();
 
   var currentTheme = localStorage.getItem("gyst_theme") || "";
   var allSwatches = document.querySelectorAll(".theme-swatch");
@@ -812,7 +1018,7 @@ function showScanConfirm(items) {
     html += '<div class="scan-item-detail">' + dateDisplay + (item.points ? ' · ' + item.points + ' pts' : '') + '</div>';
     html += '<div class="scan-item-fields">';
     html += '<input type="text" class="scan-item-edit course-field" placeholder="course name" data-index="' + i + '" value="' + (item.course || '') + '" />';
-    html += '<input type="datetime-local" class="scan-item-edit date-field" data-date-index="' + i + '" value="' + dateVal + '" />';
+    html += '<input type="datetime-local" class="scan-item-edit date-field" data-date-index="' + i + '" min="2000-01-01T00:00" max="2099-12-31T23:59" value="' + dateVal + '" />';
     html += '</div>';
     html += '</div>';
     html += '</div>';
@@ -896,6 +1102,7 @@ document.addEventListener("keydown", function(e) {
 // AUTO LOGIN
 (function() {
   loadSettings();
+  applyCustomColor();
   loadCustomCourses();
 
   var saved = localStorage.getItem("gyst_theme");

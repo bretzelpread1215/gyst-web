@@ -143,6 +143,17 @@
 
     <div class="app-body">
       <div class="sidebar">
+        <div class="stats-row">
+          <div class="stat-card" data-filter="upcoming">
+            <span class="stat-num" id="stat-upcoming">0</span>
+            <span class="stat-lbl">upcoming</span>
+          </div>
+          <div class="stat-card" data-filter="overdue">
+            <span class="stat-num stat-warn" id="stat-overdue">0</span>
+            <span class="stat-lbl">overdue</span>
+          </div>
+        </div>
+
         <div class="sidebar-section">
           <h3>view</h3>
           <button class="sidebar-btn active" data-filter="upcoming">upcoming</button>
@@ -153,17 +164,6 @@
         <div class="sidebar-section">
           <h3>courses</h3>
           <div id="course-filters"></div>
-        </div>
-
-        <div class="stats-row">
-          <div class="stat-card">
-            <span class="stat-num" id="stat-upcoming">0</span>
-            <span class="stat-lbl">upcoming</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-num stat-warn" id="stat-overdue">0</span>
-            <span class="stat-lbl">overdue</span>
-          </div>
         </div>
       </div>
 
@@ -195,11 +195,11 @@
         <div class="settings-row">
           <div>
             <label>start</label>
-            <input type="date" id="settings-term-start" />
+            <input type="date" id="settings-term-start" min="2000-01-01" max="2099-12-31" />
           </div>
           <div>
             <label>end</label>
-            <input type="date" id="settings-term-end" />
+            <input type="date" id="settings-term-end" min="2000-01-01" max="2099-12-31" />
           </div>
         </div>
       </div>
@@ -242,6 +242,15 @@
         </div>
       </div>
 
+      <div class="settings-section">
+        <h3>added &amp; scanned color</h3>
+        <p class="settings-hint">changes the strip on the left edge of assignments you add manually or scan. due-date badges (green &rarr; orange &rarr; red) work the same for every assignment. applies instantly.</p>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <input type="color" id="settings-custom-color" style="width: 48px; height: 32px; padding: 2px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer;" />
+          <button id="custom-color-reset" class="btn-ghost">reset to default</button>
+        </div>
+      </div>
+
       <div class="settings-section danger-zone">
         <h3>danger zone</h3>
         <p class="settings-hint">switching accounts signs you out and resets your Canvas/Moodle connection. custom events and added assignments are kept.</p>
@@ -275,15 +284,43 @@
           <input type="checkbox" id="add-course-save" checked style="accent-color: var(--accent); width: 14px; height: 14px;" />
           <span style="font-size: 0.75rem; color: var(--text-muted);">save as permanent course</span>
         </label>
+        <label>course color</label>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <input type="color" id="add-course-color" class="color-input" />
+          <span class="hint" style="margin-top: 0;">shows on the card edge &amp; sidebar</span>
+        </div>
       </div>
 
       <label>due date</label>
-      <input type="datetime-local" id="add-due" />
+      <input type="datetime-local" id="add-due" min="2000-01-01T00:00" max="2099-12-31T23:59" />
 
       <label>notes <span class="opt">optional</span></label>
       <input type="text" id="add-notes" placeholder="anything extra" />
 
       <button id="add-save" class="btn-primary">add</button>
+    </div>
+  </div>
+
+  <!-- COURSE EDIT MODAL -->
+  <div id="course-edit-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-top">
+        <h2>edit course</h2>
+        <button class="modal-close" id="course-edit-close">&times;</button>
+      </div>
+
+      <label>course name</label>
+      <input type="text" id="course-edit-name" />
+      <p class="hint" id="course-edit-name-hint" style="display:none;">courses synced from Canvas/Moodle can't be renamed here.</p>
+
+      <label>color</label>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <input type="color" id="course-edit-color" class="color-input" />
+        <button id="course-edit-color-reset" class="btn-ghost">reset to default</button>
+      </div>
+
+      <button id="course-edit-save" class="btn-primary">save</button>
+      <button id="course-edit-delete" class="btn-subtle-danger" style="width: 100%; margin-top: 8px;">delete course</button>
     </div>
   </div>
 

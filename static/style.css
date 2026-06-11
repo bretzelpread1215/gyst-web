@@ -391,10 +391,77 @@ nav h1 {
 .course-btn:hover { color: var(--text); background: var(--bg); }
 .course-btn.active { color: var(--accent); background: var(--accent-soft); }
 
+.course-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1px;
+}
+
+.course-row .course-btn {
+  flex: 1;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.course-btn-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.course-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.course-dot.empty { background: var(--border); }
+
+.course-menu-btn {
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  padding: 4px 7px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-family: 'DM Sans', sans-serif;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.1s, color 0.1s;
+}
+
+.course-row:hover .course-menu-btn,
+.course-menu-btn:focus-visible { opacity: 1; }
+
+.course-menu-btn:hover {
+  color: var(--accent);
+  background: var(--bg);
+}
+
+.color-input {
+  width: 48px;
+  height: 32px;
+  padding: 2px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.modal-card input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .stats-row {
   display: flex;
   gap: 8px;
-  margin-top: 16px;
+  margin: 0 0 24px;
 }
 
 .stat-card {
@@ -403,6 +470,12 @@ nav h1 {
   border-radius: 8px;
   padding: 10px 8px;
   text-align: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.stat-card:hover {
+  background: var(--bg-deep);
 }
 
 .stat-num {
@@ -445,7 +518,7 @@ main {
 
 .assignment-card.overdue { border-left-color: var(--red); }
 .assignment-card.soon { border-left-color: var(--amber); }
-.assignment-card.custom-card { border-left-color: var(--green); }
+.assignment-card.custom-card { border-left-color: var(--custom, var(--green)); }
 
 .card-top {
   display: flex;
@@ -471,8 +544,7 @@ main {
 
 .badge-overdue { background: var(--red-soft); color: var(--red); }
 .badge-soon { background: var(--amber-soft); color: var(--amber); }
-.badge-ok { background: var(--accent-soft); color: var(--accent); }
-.badge-custom { background: var(--green-soft); color: var(--green); }
+.badge-ok { background: var(--green-soft); color: var(--green); }
 
 .card-course {
   font-size: 0.75rem;
@@ -869,6 +941,7 @@ main {
   }
 
   .course-btn { display: none; }
+  .course-row { display: none; }
   .stats-row { display: none; }
 
   main { padding: 16px; }
